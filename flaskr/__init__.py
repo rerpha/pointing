@@ -2,8 +2,15 @@ import os
 from statistics import mean
 from flask import Flask, request
 
-priorities = [1, 2, 3]
-points = [1, 2, 3, 5, 8, 13, 20, 40]
+
+class Points:
+    priorities = [1, 2, 3]
+    points = [1, 2, 3, 5, 8, 13, 20, 40]
+    is_points = True
+
+
+current_points = Points()
+
 
 def create_app(test_config=None):
     # create and configure the app
@@ -27,13 +34,17 @@ def create_app(test_config=None):
         pass
 
     votes = []
-    items = points
 
     @app.route("/")
     def hello():
         point_buttons = ""
-        for point in items:
-            point_buttons += f'<li style="display: inline"><button id="point" onClick="send({point})">{point} </button></li>\n'
+        items = (
+            current_points.points
+            if current_points.is_points
+            else current_points.priorities
+        )
+        for item in items:
+            point_buttons += f'<li style="display: inline"><button id="point" onClick="send({item})">{item} </button></li>\n'
         return f"""
 <html>
     <head>
@@ -55,6 +66,14 @@ def create_app(test_config=None):
     <h1> Average vote: {mean(votes) if votes else "" } </h1>
     
     <script>
+    
+    function sleep(milliseconds) {{
+  const date = Date.now();
+  let currentDate = null;
+  do {{
+    currentDate = Date.now();
+  }} while (currentDate - date < milliseconds);
+}}
     function send(point) {{
       var xhr = new XMLHttpRequest();
       xhr.open("POST", "/send?point=" + point, true);
@@ -67,12 +86,14 @@ def create_app(test_config=None):
     var xhr = new XMLHttpRequest();
       xhr.open("GET", "/reset", true);
       xhr.send("");
+      sleep(500);
       location.reload();
     }}
     function change_points() {{ 
     var xhr = new XMLHttpRequest();
       xhr.open("GET", "/change_points", true);
       xhr.send("");
+      sleep(500);
       location.reload();
     }}
     </script>
@@ -92,12 +113,7 @@ def create_app(test_config=None):
 
     @app.route("/change_points", methods=["GET"])
     def change_points():
-        are_points = items == points
-        print(f"are points: {are_points}")
-        items.clear()
-        [items.append(x) for x in priorities] if are_points else [items.append(x) for x in points]
-        len(items)
-        # items = points if current_items == priorities else priorities
+        current_points.is_points = not current_points.is_points
         return "200"
 
     return app

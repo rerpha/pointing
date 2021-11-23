@@ -19,6 +19,7 @@ def _generate_html(point_buttons, votes):
         <title>Pointing</title>
     </head>
     <body>
+    <h1>Pointing</h1>
     <ul style="list-style: none; margin: 0; padding: 0;>
         { point_buttons }
     </ul>
@@ -28,41 +29,38 @@ def _generate_html(point_buttons, votes):
         <li style="display: inline"><button onClick="reset()">Reset Votes</button><li>
         <li style="display: inline"><button onClick="change_points()">Switch voting type</button><li>
     </ul>
-    
     <h1> votes: {votes} </h1>
-    <h1> Average vote: {mean(votes) if votes else "" } </h1>
-    
+    <h1> Average vote: {mean(votes) if votes else 0 } </h1>
+    <h1> Number of votes: {len(votes)} </h1>
     <script>
-    
-    function sleep(milliseconds) {{
-  const date = Date.now();
-  let currentDate = null;
-  do {{
-    currentDate = Date.now();
-  }} while (currentDate - date < milliseconds);
-}}
-    function send(point) {{
-      var xhr = new XMLHttpRequest();
-      xhr.open("POST", "/send?point=" + point, true);
-      xhr.send("");
-      Array.from(document.getElementsByID("point"))
-  .forEach(b => b.disabled = true)
-
-    }}
-    function reset() {{ 
-    var xhr = new XMLHttpRequest();
-      xhr.open("GET", "/reset", true);
-      xhr.send("");
-      sleep(500);
-      location.reload();
-    }}
-    function change_points() {{ 
-    var xhr = new XMLHttpRequest();
-      xhr.open("GET", "/change_points", true);
-      xhr.send("");
-      sleep(500);
-      location.reload();
-    }}
+        function sleep(milliseconds) {{
+          const date = Date.now();
+          let currentDate = null;
+          do {{
+            currentDate = Date.now();
+          }} while (currentDate - date < milliseconds);
+        }}
+        function send(point) {{
+          var xhr = new XMLHttpRequest();
+          xhr.open("POST", "/send?point=" + point, true);
+          xhr.send("");
+          Array.from(document.getElementsByID("point"))
+      .forEach(b => b.disabled = true)
+        }}
+        function reset() {{ 
+          var xhr = new XMLHttpRequest();
+          xhr.open("GET", "/reset", true);
+          xhr.send("");
+          sleep(500);
+          location.reload();
+        }}
+        function change_points() {{ 
+          var xhr = new XMLHttpRequest();
+          xhr.open("GET", "/change_points", true);
+          xhr.send("");
+          sleep(500);
+          location.reload();
+        }}
     </script>
     </body>
 </html>"""

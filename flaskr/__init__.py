@@ -12,40 +12,8 @@ class Points:
 current_points = Points()
 
 
-def create_app(test_config=None):
-    # create and configure the app
-    app = Flask(__name__, instance_relative_config=True)
-    app.config.from_mapping(
-        SECRET_KEY="dev",
-        DATABASE=os.path.join(app.instance_path, "flaskr.sqlite"),
-    )
-
-    if test_config is None:
-        # load the instance config, if it exists, when not testing
-        app.config.from_pyfile("config.py", silent=True)
-    else:
-        # load the test config if passed in
-        app.config.from_mapping(test_config)
-
-    # ensure the instance folder exists
-    try:
-        os.makedirs(app.instance_path)
-    except OSError:
-        pass
-
-    votes = []
-
-    @app.route("/")
-    def hello():
-        point_buttons = ""
-        items = (
-            current_points.points
-            if current_points.is_points
-            else current_points.priorities
-        )
-        for item in items:
-            point_buttons += f'<li style="display: inline"><button id="point" onClick="send({item})">{item} </button></li>\n'
-        return f"""
+def _generate_html(point_buttons, votes):
+    return f"""
 <html>
     <head>
         <title>Pointing</title>
@@ -59,7 +27,6 @@ def create_app(test_config=None):
         <li style="display: inline"><button onClick="location.reload()">Show Votes</button><li>
         <li style="display: inline"><button onClick="reset()">Reset Votes</button><li>
         <li style="display: inline"><button onClick="change_points()">Switch voting type</button><li>
-
     </ul>
     
     <h1> votes: {votes} </h1>
@@ -100,6 +67,46 @@ def create_app(test_config=None):
     </body>
 </html>"""
 
+
+def _create_point_buttons(items):
+    point_buttons = ""
+    for item in items:
+        point_buttons += f'<li style="display: inline"><button id="point" onClick="send({item})">{item} </button></li>\n'
+    return point_buttons
+
+
+def create_app(test_config=None):
+    # create and configure the app
+    app = Flask(__name__, instance_relative_config=True)
+    app.config.from_mapping(
+        SECRET_KEY="dev",
+        DATABASE=os.path.join(app.instance_path, "flaskr.sqlite"),
+    )
+
+    if test_config is None:
+        # load the instance config, if it exists, when not testing
+        app.config.from_pyfile("config.py", silent=True)
+    else:
+        # load the test config if passed in
+        app.config.from_mapping(test_config)
+
+    # ensure the instance folder exists
+    try:
+        os.makedirs(app.instance_path)
+    except OSError:
+        pass
+
+    votes = []
+
+    @app.route("/")
+    def hello():
+        items = (
+            current_points.points
+            if current_points.is_points
+            else current_points.priorities
+        )
+        return _generate_html(_create_point_buttons(items), votes)
+
     @app.route("/send", methods=["POST"])
     def send():
         point = int(request.args.get("point"))
@@ -114,6 +121,7 @@ def create_app(test_config=None):
     @app.route("/change_points", methods=["GET"])
     def change_points():
         current_points.is_points = not current_points.is_points
+        reset()
         return "200"
 
     return app

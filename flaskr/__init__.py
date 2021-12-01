@@ -44,7 +44,7 @@ def _generate_html(point_buttons, votes):
           var xhr = new XMLHttpRequest();
           xhr.open("POST", "/send?point=" + point, true);
           xhr.send("");
-          Array.from(document.getElementsByID("point"))
+          Array.from(document.getElementsByName("point"))
       .forEach(b => b.disabled = true)
         }}
         function reset() {{ 
@@ -69,7 +69,7 @@ def _generate_html(point_buttons, votes):
 def _create_point_buttons(items):
     point_buttons = ""
     for item in items:
-        point_buttons += f'<li style="display: inline"><button id="point" onClick="send({item})">{item} </button></li>\n'
+        point_buttons += f'<li style="display: inline"><button name="point" onClick="send({item})">{item} </button></li>\n'
     return point_buttons
 
 

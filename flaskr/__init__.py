@@ -45,7 +45,7 @@ def _generate_html(point_buttons, votes):
           xhr.open("POST", "/send?point=" + point, true);
           xhr.send("");
           Array.from(document.getElementsByName("point"))
-      .forEach(b => b.disabled = true)
+            .forEach(b => b.disabled = true)
         }}
         function reset() {{ 
           var xhr = new XMLHttpRequest();

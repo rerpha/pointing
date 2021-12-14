@@ -12,37 +12,37 @@ class Points:
 current_points = Points()
 
 SCRIPT = """
-function sleep(milliseconds) {{
-                    const date = Date.now();
-                    let currentDate = null;
-                    do {{
-                        currentDate = Date.now();
-                    }} while (currentDate - date < milliseconds);
-                    }}
-                    function send(point) {{
-                    var xhr = new XMLHttpRequest();
-                    xhr.open("POST", "/send?point=" + point, true);
-                    xhr.send("");
-                    Array.from(document.getElementsByName("point"))
-                        .forEach(b => b.disabled = true)
-                    }}
-                    function reset() {{ 
-                    var xhr = new XMLHttpRequest();
-                    xhr.open("GET", "/reset", true);
-                    xhr.send("");
-                    sleep_and_reload();
-                    }}
-                    function change_points() {{ 
-                    var xhr = new XMLHttpRequest();
-                    xhr.open("GET", "/change_points", true);
-                    xhr.send("");
-                    sleep_and_reload();
-                    }}
-                    function sleep_and_reload() {{
-                        sleep(500);
-                        location.reload();
-                    }}
-"""
+    function sleep(milliseconds) {{
+        const date = Date.now();
+        let currentDate = null;
+        do {{
+            currentDate = Date.now();
+        }} while (currentDate - date < milliseconds);
+        }}
+    function send(point) {{
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", "/send?point=" + point, true);
+        xhr.send("");
+        Array.from(document.getElementsByName("point"))
+            .forEach(b => b.disabled = true)
+    }}
+    function reset() {{ 
+        var xhr = new XMLHttpRequest();
+        xhr.open("GET", "/reset", true);
+        xhr.send("");
+        sleep_and_reload();
+    }}
+    function change_points(is_points) {{ 
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", "/change_points?is_points=" + is_points, true);
+        xhr.send("");
+        sleep_and_reload();
+    }}
+    function sleep_and_reload() {{
+        sleep(100);
+        location.reload();
+    }}
+    """
 
 
 def _generate_html(point_buttons, votes):
@@ -69,17 +69,22 @@ def _generate_html(point_buttons, votes):
                     <ul style="list-style: none; margin: 0; padding: 0;>
                         { point_buttons }
                     </ul>
-                    <br>
 
-                    <div class="btn-group-vertical">
-                        <button class="btn btn-primary" onClick="location.reload()">Show Votes</button>
-                        <button class="btn btn-primary" onClick="reset()">Reset Votes</button>
-                        <button class="btn btn-primary" onClick="change_points()">Switch voting type</button>
+                    <div>
+                    <h2> Votes: {votes} </h2>
+                    <h2> Avg vote: {mean(votes) if votes else 0 } </h2>
+                    <h2> Num votes: {len(votes)} </h2>
                     </div>
 
-                    <h2> Votes: {votes} </h1>
-                    <h2> Avg vote: {mean(votes) if votes else 0 } </h1>
-                    <h2> Num votes: {len(votes)} </h1>
+                    <div class="btn-group" role="group">
+                        <button class="btn btn-primary" onClick="location.reload()">Show</button>
+                        <button class="btn btn-danger" onClick="reset()">Reset</button>
+                    </div>
+                    <br><br>
+                    <div class="btn-group btn-group-toggle" role="group">
+                        <button class="btn btn-primary" onClick="change_points(1)">Points</button>
+                        <button class="btn btn-primary" onClick="change_points(0)">Priorities</button>
+                    </div>
 
                 </div>
                 <script>
@@ -143,9 +148,10 @@ def create_app(test_config=None):
         votes.clear()
         return "200"
 
-    @app.route("/change_points", methods=["GET"])
-    def change_points():
-        current_points.is_points = not current_points.is_points
+    @app.route("/change_points", methods=["POST"])
+    def change_to_points():
+        is_points = bool(int(request.args.get("is_points")))
+        current_points.is_points = is_points
         reset()
         return "200"
 

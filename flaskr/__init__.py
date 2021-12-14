@@ -11,57 +11,83 @@ class Points:
 
 current_points = Points()
 
+SCRIPT = """
+function sleep(milliseconds) {{
+                    const date = Date.now();
+                    let currentDate = null;
+                    do {{
+                        currentDate = Date.now();
+                    }} while (currentDate - date < milliseconds);
+                    }}
+                    function send(point) {{
+                    var xhr = new XMLHttpRequest();
+                    xhr.open("POST", "/send?point=" + point, true);
+                    xhr.send("");
+                    Array.from(document.getElementsByName("point"))
+                        .forEach(b => b.disabled = true)
+                    }}
+                    function reset() {{ 
+                    var xhr = new XMLHttpRequest();
+                    xhr.open("GET", "/reset", true);
+                    xhr.send("");
+                    sleep_and_reload();
+                    }}
+                    function change_points() {{ 
+                    var xhr = new XMLHttpRequest();
+                    xhr.open("GET", "/change_points", true);
+                    xhr.send("");
+                    sleep_and_reload();
+                    }}
+                    function sleep_and_reload() {{
+                        sleep(500);
+                        location.reload();
+                    }}
+"""
+
 
 def _generate_html(point_buttons, votes):
     return f"""
+    <!doctype html>
         <html>
             <head>
                 <title>Pointing</title>
+                <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐐</text></svg>">
+                <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
             </head>
+            <style>
+            .content {{
+                max-width: 300px;
+                margin: 0 auto;
+                justify-content: center;
+                align-items: center;
+            }}
+            </style>
             <body>
-            <h1>Pointing</h1>
-            <ul style="list-style: none; margin: 0; padding: 0;>
-                { point_buttons }
-            </ul>
-            <br>
-            <ul style="list-style: none; margin: 10; padding: 10;">
-                <li style="display: inline"><button onClick="location.reload()">Show Votes</button><li>
-                <li style="display: inline"><button onClick="reset()">Reset Votes</button><li>
-                <li style="display: inline"><button onClick="change_points()">Switch voting type</button><li>
-            </ul>
-            <h1> votes: {votes} </h1>
-            <h1> Average vote: {mean(votes) if votes else 0 } </h1>
-            <h1> Number of votes: {len(votes)} </h1>
-            <script>
-                function sleep(milliseconds) {{
-                const date = Date.now();
-                let currentDate = null;
-                do {{
-                    currentDate = Date.now();
-                }} while (currentDate - date < milliseconds);
-                }}
-                function send(point) {{
-                var xhr = new XMLHttpRequest();
-                xhr.open("POST", "/send?point=" + point, true);
-                xhr.send("");
-                Array.from(document.getElementsByName("point"))
-                    .forEach(b => b.disabled = true)
-                }}
-                function reset() {{ 
-                var xhr = new XMLHttpRequest();
-                xhr.open("GET", "/reset", true);
-                xhr.send("");
-                sleep(500);
-                location.reload();
-                }}
-                function change_points() {{ 
-                var xhr = new XMLHttpRequest();
-                xhr.open("GET", "/change_points", true);
-                xhr.send("");
-                sleep(500);
-                location.reload();
-                }}
-            </script>
+                <div class="container-fluid content">
+
+                    <h1>Pointing 🐐</h1>
+                    <ul style="list-style: none; margin: 0; padding: 0;>
+                        { point_buttons }
+                    </ul>
+                    <br>
+
+                    <div class="btn-group-vertical">
+                        <button class="btn btn-primary" onClick="location.reload()">Show Votes</button>
+                        <button class="btn btn-primary" onClick="reset()">Reset Votes</button>
+                        <button class="btn btn-primary" onClick="change_points()">Switch voting type</button>
+                    </div>
+
+                    <h2> Votes: {votes} </h1>
+                    <h2> Avg vote: {mean(votes) if votes else 0 } </h1>
+                    <h2> Num votes: {len(votes)} </h1>
+
+                </div>
+                <script>
+                    {SCRIPT}
+                </script>
+                <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+                <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+                <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
             </body>
         </html>
     """
@@ -70,7 +96,7 @@ def _generate_html(point_buttons, votes):
 def _create_point_buttons(items):
     point_buttons = ""
     for item in items:
-        point_buttons += f'<li style="display: inline"><button name="point" onClick="send({item})">{item} </button></li>\n'
+        point_buttons += f'<li style="display: inline"><button class="btn btn-primary btn-sm" name="point" onClick="send({item})">{item} </button></li>\n'
     return point_buttons
 
 

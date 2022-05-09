@@ -23,6 +23,8 @@ ADMIN_CONTROLS = """
                         <button class="btn btn-primary" onClick="change_points(0)">Priorities</button>
                     </div>
 """
+
+
 class Points:
     priorities = [1, 2, 3]
     points = [1, 2, 3, 5, 8, 13, 20, 40]
@@ -140,7 +142,7 @@ def create_app(test_config=None):
     try:
         with open(USERS_FILENAME, "r") as users_file:
             user_list = users_file.read().split(" ")
-    except OSError: 
+    except OSError:
         print("error opening users list")
 
     @app.route("/admin")
@@ -157,8 +159,11 @@ def create_app(test_config=None):
             if current_points.is_points
             else current_points.priorities
         )
-        return _generate_html(_create_point_buttons(items), votes, is_admin) + f"user: {user}"
-    
+        return (
+            _generate_html(_create_point_buttons(items), votes, is_admin)
+            + f"user: {user}"
+        )
+
     @app.route("/pickuser")
     def pickuser():
         return _create_point_buttons(user_list)

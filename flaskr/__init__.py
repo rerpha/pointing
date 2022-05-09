@@ -2,6 +2,16 @@ import os
 from statistics import mean
 from flask import Flask, request
 
+CSS_SCRIPTS = """
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+                <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+                <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+"""
+CSS_LINKS = """
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐐</text></svg>">
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+"""
+USERS_FILENAME = "users.txt"
 
 class Points:
     priorities = [1, 2, 3]
@@ -45,14 +55,13 @@ SCRIPT = """
     """
 
 
-def _generate_html(point_buttons, votes):
+def _generate_html(point_buttons, votes, is_admin):
     return f"""
     <!doctype html>
         <html>
             <head>
                 <title>Pointing</title>
-                <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐐</text></svg>">
-                <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+                { CSS_LINKS }
             </head>
             <style>
             .content {{
@@ -76,9 +85,9 @@ def _generate_html(point_buttons, votes):
                     <h2> Num votes: {len(votes)} </h2>
                     </div>
 
-                    <div class="btn-group" role="group">
-                        <button class="btn btn-primary" onClick="location.reload()">Show</button>
-                        <button class="btn btn-danger" onClick="reset()">Reset</button>
+                    <div class="btn-group" role="group" >
+                        <button class="btn btn-primary" {'disabled=""' if not is_admin else ""} onClick="location.reload()">Show</button>
+                        <button class="btn btn-danger" {'disabled=""' if not is_admin else ""} onClick="reset()">Reset</button>
                     </div>
                     <br><br>
                     <div class="btn-group btn-group-toggle" role="group">
@@ -90,18 +99,16 @@ def _generate_html(point_buttons, votes):
                 <script>
                     {SCRIPT}
                 </script>
-                <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
-                <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
-                <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+                {CSS_SCRIPTS}
             </body>
         </html>
     """
 
 
-def _create_point_buttons(items):
+def _create_point_buttons(items, js_func="send"):
     point_buttons = ""
     for item in items:
-        point_buttons += f'<li style="display: inline"><button class="btn btn-primary btn-sm" name="point" onClick="send({item})">{item} </button></li>\n'
+        point_buttons += f'<li style="display: inline"><button class="btn btn-primary btn-sm" name="point" onClick="{js_func}({item})">{item} </button></li>\n'
     return point_buttons
 
 
@@ -127,15 +134,32 @@ def create_app(test_config=None):
         pass
 
     votes = []
+    user_list = []
+    try:
+        with open(USERS_FILENAME, "r") as users_file:
+            user_list = users_file.read().split(" ")
+    except OSError: 
+        print("error opening users list")
+
+    @app.route("/admin")
+    def admin():
+        return main(True)
 
     @app.route("/")
-    def hello():
+    def main(is_admin=False):
+        user = request.args.get("user")
+        if user is not None:
+            print(user)
         items = (
             current_points.points
             if current_points.is_points
             else current_points.priorities
         )
-        return _generate_html(_create_point_buttons(items), votes)
+        return _generate_html(_create_point_buttons(items), votes, is_admin) + f"user: {user}"
+    
+    @app.route("/pickuser")
+    def pickuser():
+        return _create_point_buttons(user_list)
 
     @app.route("/send", methods=["POST"])
     def send():

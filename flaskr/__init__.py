@@ -12,7 +12,17 @@ CSS_LINKS = """
 <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
 """
 USERS_FILENAME = "users.txt"
-
+ADMIN_CONTROLS = """
+<div class="btn-group" role="group" >
+                        <button class="btn btn-primary" onClick="location.reload()">Show</button>
+                        <button class="btn btn-danger" onClick="reset()">Reset</button>
+                    </div>
+                    <br><br>
+                    <div class="btn-group btn-group-toggle" role="group">
+                        <button class="btn btn-primary" onClick="change_points(1)">Points</button>
+                        <button class="btn btn-primary" onClick="change_points(0)">Priorities</button>
+                    </div>
+"""
 class Points:
     priorities = [1, 2, 3]
     points = [1, 2, 3, 5, 8, 13, 20, 40]
@@ -85,15 +95,7 @@ def _generate_html(point_buttons, votes, is_admin):
                     <h2> Num votes: {len(votes)} </h2>
                     </div>
 
-                    <div class="btn-group" role="group" >
-                        <button class="btn btn-primary" {'disabled=""' if not is_admin else ""} onClick="location.reload()">Show</button>
-                        <button class="btn btn-danger" {'disabled=""' if not is_admin else ""} onClick="reset()">Reset</button>
-                    </div>
-                    <br><br>
-                    <div class="btn-group btn-group-toggle" role="group">
-                        <button class="btn btn-primary" onClick="change_points(1)">Points</button>
-                        <button class="btn btn-primary" onClick="change_points(0)">Priorities</button>
-                    </div>
+                    {ADMIN_CONTROLS if is_admin else ""}
 
                 </div>
                 <script>

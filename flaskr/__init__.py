@@ -64,10 +64,16 @@ SCRIPT = """
         sleep(100);
         location.reload();
     }}
+    function redir(user) {{
+        let url = `/?user=${user}`;
+        console.log(user);
+        console.log(url);
+        window.location.replace(url);
+    }}
     """
 
 
-def _generate_html(point_buttons, votes, is_admin):
+def _generate_html(point_buttons, votes, user, is_admin=False):
     return f"""
     <!doctype html>
         <html>
@@ -97,6 +103,8 @@ def _generate_html(point_buttons, votes, is_admin):
                     <h2> Num votes: {len(votes)} </h2>
                     </div>
 
+                    <h2> User: {user} </h2>
+
                     {ADMIN_CONTROLS if is_admin else ""}
 
                 </div>
@@ -108,6 +116,38 @@ def _generate_html(point_buttons, votes, is_admin):
         </html>
     """
 
+def _generate_html_pickuser(user_buttons):
+    return f"""
+    <!doctype html>
+        <html>
+            <head>
+                <title>Pointing</title>
+                { CSS_LINKS }
+            </head>
+            <style>
+            .content {{
+                max-width: 300px;
+                margin: 0 auto;
+                justify-content: center;
+                align-items: center;
+            }}
+            </style>
+            <body>
+                <div class="container-fluid content">
+
+                    <h1>Pick user 🐐</h1>
+                    <ul style="list-style: none; margin: 0; padding: 0;>
+                        { user_buttons }
+                    </ul>
+
+                </div>
+                <script>
+                    {SCRIPT}
+                </script>
+                {CSS_SCRIPTS}
+            </body>
+        </html>
+    """
 
 def _create_point_buttons(items, js_func="send"):
     point_buttons = ""
@@ -152,21 +192,25 @@ def create_app(test_config=None):
     @app.route("/")
     def main(is_admin=False):
         user = request.args.get("user")
-        if user is not None:
-            print(user)
+        if user is None:
+            return "not signed in"
         items = (
             current_points.points
             if current_points.is_points
             else current_points.priorities
         )
         return (
-            _generate_html(_create_point_buttons(items), votes, is_admin)
-            + f"user: {user}"
+            _generate_html(_create_point_buttons(items), votes, user, is_admin)
         )
 
     @app.route("/pickuser")
     def pickuser():
-        return _create_point_buttons(user_list)
+        #TODO use list comprehension here?
+        new_user_list = []
+        for item in user_list:
+            new_user_list.append("'" + item + "'") 
+        return _generate_html_pickuser(_create_point_buttons(new_user_list, js_func="redir"))
+
 
     @app.route("/send", methods=["POST"])
     def send():

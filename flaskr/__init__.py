@@ -116,6 +116,7 @@ def _generate_html(point_buttons, votes, user, is_admin=False):
         </html>
     """
 
+
 def _generate_html_pickuser(user_buttons):
     return f"""
     <!doctype html>
@@ -148,6 +149,7 @@ def _generate_html_pickuser(user_buttons):
             </body>
         </html>
     """
+
 
 def _create_point_buttons(items, js_func="send"):
     point_buttons = ""
@@ -199,18 +201,17 @@ def create_app(test_config=None):
             if current_points.is_points
             else current_points.priorities
         )
-        return (
-            _generate_html(_create_point_buttons(items), votes, user, is_admin)
-        )
+        return _generate_html(_create_point_buttons(items), votes, user, is_admin)
 
     @app.route("/pickuser")
     def pickuser():
-        #TODO use list comprehension here?
+        # TODO use list comprehension here?
         new_user_list = []
         for item in user_list:
-            new_user_list.append("'" + item + "'") 
-        return _generate_html_pickuser(_create_point_buttons(new_user_list, js_func="redir"))
-
+            new_user_list.append("'" + item + "'")
+        return _generate_html_pickuser(
+            _create_point_buttons(new_user_list, js_func="redir")
+        )
 
     @app.route("/send", methods=["POST"])
     def send():

@@ -205,10 +205,7 @@ def create_app(test_config=None):
 
     @app.route("/pickuser")
     def pickuser():
-        # TODO use list comprehension here?
-        new_user_list = []
-        for item in user_list:
-            new_user_list.append("'" + item + "'")
+        new_user_list = ["'" + user + "'" for user in user_list]
         return _generate_html_pickuser(
             _create_point_buttons(new_user_list, js_func="redir")
         )

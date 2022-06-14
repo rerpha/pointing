@@ -205,9 +205,8 @@ def create_app(test_config=None):
 
     @app.route("/pickuser")
     def pickuser():
-        new_user_list = ["'" + user + "'" for user in user_list]
         return _generate_html_pickuser(
-            _create_point_buttons(new_user_list, js_func="redir")
+            _create_point_buttons(["'" + user + "'" for user in user_list], js_func="redir")
         )
 
     @app.route("/send", methods=["POST"])
